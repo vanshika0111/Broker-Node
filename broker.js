@@ -1,6 +1,6 @@
 // npm install net 
 // npm install aedes
-// npm i -g heroku
+// npm install os
 
 const os = require('os');
 const aedes = require('aedes')();
