@@ -1,8 +1,6 @@
-// npm install net 
-// npm install aedes
-// npm i -g heroku
-
 const os = require('os');
+const fs = require('fs');
+const path = require('path');
 const aedes = require('aedes')();
 const server = require('net').createServer(aedes.handle);
 
@@ -52,23 +50,34 @@ aedes.on('clientDisconnect', (client) => {
 aedes.on('connackSent', (packet, client) => {
     console.log(`CONNACK sent to client: ${client.id}, Return code: ${packet.returnCode}`);
 });
-// console.log(`Message received from client ${client.conn.remoteAddress}: ${packet.payload.toString()}`);
-
-// Event listener for SUBSCRIBE
-aedes.on('subscribe', (subscriptions, client) => {
-    console.log(`Subscriber ${client.conn.remoteAddress} subscribed to topic:`, subscriptions.map(sub => sub.topic));
-});
-
-// Event listener for UNSUBSCRIBE
-aedes.on('unsubscribe', (unsubscriptions, client) => {
-    console.log(`Subscriber ${client.conn.remoteAddress} unsubscribed from topic:`, unsubscriptions);
-});
 
 // Event listener for PUBLISH
 aedes.on('publish', (packet, client) => {
     if (client) {
         const topic = packet.topic;
         const payload = packet.payload.toString();
-        console.log(`Publisher ${client.conn.remoteAddress} published topic : message -> ${topic}: ${payload}`);
+        const logMessage = `Client ${client.conn.remoteAddress} published to topic : message -> ${topic}: ${payload}\n`;
+        console.log(logMessage);
+        saveToLogFile(logMessage);
     }
 });
+
+// Event listener for SUBSCRIBE
+aedes.on('subscribe', (subscriptions, client) => {
+    console.log(`Client ${client.conn.remoteAddress} subscribed to topic:`, subscriptions.map(sub => sub.topic));
+});
+
+// Event listener for UNSUBSCRIBE
+aedes.on('unsubscribe', (unsubscriptions, client) => {
+    console.log(`Client ${client.conn.remoteAddress} unsubscribed from topic:`, unsubscriptions);
+});
+
+// Function to save message to log file
+function saveToLogFile(message) {
+    const logFilePath = path.join(__dirname, 'mqtt_log.txt');
+    fs.appendFile(logFilePath, message, (err) => {
+        if (err) {
+            console.error('Error writing to log file:', err);
+        }
+    });
+}
